@@ -1,0 +1,45 @@
+{
+  "name": "smart-note-electron",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "@ant-design/icons": "^5.3.7",
+    "antd": "^5.19.1",
+    "autoprefixer": "^10.4.19",
+    "css-loader": "^7.1.2",
+    "electron": "^31.1.0",
+    "electron-log": "^5.1.5",
+    "iohook": "^0.9.3",
+    "postcss": "^8.4.39",
+    "postcss-loader": "^8.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.1",
+    "style-loader": "^4.0.0",
+    "uuidv4": "^6.2.13"
+  },
+  "scripts": {
+    "dev": "webpack serve --config webpack.config.js --mode=development",
+    "build:react": "webpack --config webpack.config.js",
+    "build:electron": "electron-builder",
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "electron-rebuild": "^3.2.9",
+    "html-webpack-plugin": "^5.6.0",
+    "less": "^4.2.0",
+    "less-loader": "^12.2.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.3",
+    "webpack": "^5.92.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
+  }
+}
