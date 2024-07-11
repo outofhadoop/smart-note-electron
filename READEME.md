@@ -22,5 +22,5 @@ node 版本 v20
 
 ### 启动electron
 
-![使用vscode的debug工具调试electron](image.png)
+![使用vscode的debug工具调试electron](./imgs/image.png)
 
