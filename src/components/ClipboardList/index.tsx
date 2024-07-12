@@ -3,6 +3,7 @@ import { Button, List, Radio, Timeline } from "antd";
 import React, { useEffect, useState } from "react";
 import View from "../View";
 import { CopyOutlined } from "@ant-design/icons";
+import { copyToClipboard } from "../../utils/electronApi";
 const { v4: uuid } = require("uuid");
 const styles = require("./index.module.less");
 
@@ -12,75 +13,40 @@ enum ClipboardType {
   FILE = "file",
 }
 
+
 const ClipboardList = () => {
-  const [data, setData] = useState<
-    {
-      id: string;
-      title: string;
-      description?: string;
-      time?: string;
-      type: ClipboardType;
-      content: any;
-    }[]
-  >([
-    {
-      id: uuid(),
-      title: "test",
-      description: new Date().toLocaleString(),
-      time: new Date().toLocaleString(),
-      type: ClipboardType.TEXT,
-      content: "test",
-    },
-  ]);
+  const [data, setData] = useState<ClipboardItem[]>([]);
 
-  const handleClipboardChangeData = (newContent: {
-    type: ClipboardType;
-    content: any;
-  }) => {
-    /**
-     * 如果是已经复制过的内容就置顶匹配项
-     */
-    const index = data.findIndex((item) => item.content === newContent.content);
-    if (index !== -1) {
-      data.splice(index, 1);
-      data.unshift(newContent.content);
-    }
-
-    const commonInfo = {
-      id: uuid(),
-      time: new Date().toLocaleString(),
-      type: newContent.type,
-      content: newContent.content,
-    };
-    switch (newContent.type) {
-      case ClipboardType.TEXT:
-        setData([
-          {
-            title: newContent.content,
-
-            ...commonInfo,
-          },
-          ...data,
-        ]);
-        break;
-      case ClipboardType.IMAGE:
-        setData([
-          {
-            title: newContent.content,
-            ...commonInfo,
-          },
-          ...data,
-        ]);
-        break;
-    }
+  const handleClipboardChangeData = (newContent: ClipboardItem[]) => {
+    setData(newContent);
   };
 
   useEffect(() => {
-    window?.electronAPI?.onClipboardChanged?.((event, newContent) => {
+    window?.electronAPI?.onClipboardChanged?.((event, newContent: ClipboardItem[]) => {
       console.log("剪切板内容:", newContent, event);
       handleClipboardChangeData(newContent);
     });
   }, []);
+
+  /**
+   * 复制内容
+   */
+  const copyContent = (item: ClipboardItem) => {
+
+    switch (item.type) {
+      case ClipboardType.TEXT:
+        copyToClipboard({
+          text: item.content,
+        });
+        break;
+      case ClipboardType.IMAGE:
+        copyToClipboard({
+          image: item.content,
+        });
+        break;
+    }
+  };
+
   return (
     <View className={styles.container}>
       <List
@@ -89,15 +55,18 @@ const ClipboardList = () => {
         renderItem={(item, index) => (
           <List.Item
             actions={[
-              <Button  type="text" key="list-loadmore-more">
+              <Button
+                onClick={() => copyContent(item)}
+                type="text"
+                key="list-loadmore-more"
+              >
                 <CopyOutlined />
               </Button>,
-
             ]}
             key={item.id}
           >
             <List.Item.Meta
-              title={<View>{item.title}</View>}
+              title={<View className={styles.title}>{item.title}</View>}
               description={`${item.time}`}
             />
           </List.Item>

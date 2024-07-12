@@ -1,13 +1,23 @@
-declare module '*.less' {
+declare module "*.less" {
   const content: { [className: string]: string };
   export default content;
 }
 
+interface ClipboardItem {
+  id: string;
+  title: string;
+  description?: string;
+  time?: string;
+  type: ClipboardType;
+  content: any;
+}
+
+
 interface Window {
   electronAPI: {
-    onClipboardChanged: (callback: (event: any, newContent: {
-      type: ClipboardType;
-      content: any;
-    }) => void) => void;
-  }
+    onClipboardChanged: (
+      callback: (event: any, newContent: ClipboardItem[]) => void
+    ) => void;
+    copyToClipboard: (data: any) => void;
+  };
 }

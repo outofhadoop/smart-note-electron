@@ -1,4 +1,13 @@
 const { clipboard } = require("electron");
+const path = require("path");
+const fs = require("fs");
+const { v4: uuid } = require("uuid");
+
+const ClipboardType = {
+  TEXT: "text",
+  IMAGE: "image",
+  FILE: "file",
+};
 
 /**
  * 读取剪贴板数据
@@ -44,14 +53,88 @@ const readClipboardData = (formats) => {
 let lastFormats = clipboard.availableFormats();
 let lastClipboardData = readClipboardData(lastFormats);
 
-const handleClipboardChanged = (mainWindow) => {
+const handleClipboardChanged = (mainWindow, ipcMain, app) => {
+  const filePath = path.join(app.getPath("documents"), "clipboard.txt");
+
+  const handleClipboardData = (clipboardData) => {
+    const commonInfo = {
+      id: uuid(),
+      time: new Date().toLocaleString(),
+      type: clipboardData.type,
+      content: clipboardData.content,
+    };
+
+    switch (clipboardData.type) {
+      case ClipboardType.TEXT:
+        return {
+          title: clipboardData.content,
+          ...commonInfo,
+        };
+      case ClipboardType.IMAGE:
+        return {
+          title: clipboardData.content,
+          ...commonInfo,
+        };
+    }
+  };
+
+  const writeToFile = (data) => {
+    // 检测文件是否存在，如果不存在则创建文件
+    try {
+      // if (!fs.existsSync(filePath)) {
+      //   fs.writeFileSync(filePath, data, {
+      //     encoding: "utf-8",
+      //   });
+      // }
+
+      fs.writeFileSync(filePath, data, {
+        encoding: "utf-8",
+      });
+      console.log("Successfully wrote to file");
+    } catch (err) {
+      console.log("Failed to write to file");
+    }
+  };
+
+  const readFileSync = () => {
+    if (!fs.existsSync(filePath)) {
+      fs.writeFileSync(filePath, "", {
+        encoding: "utf-8",
+      });
+    }
+    return fs.readFileSync(filePath, "utf-8");
+  };
+
+  // 复制内容到剪贴板
+  ipcMain.on("copy-to-clipboard", (event, data) => {
+    clipboard.write(data);
+    event.returnValue = "Copied";
+  });
+
+  ipcMain.on("write-to-file", (event, data) => {
+    writeToFile(data);
+  });
+
   // 轮询剪贴板内容的变化
   setInterval(() => {
     const formats = clipboard.availableFormats();
     const clipboardData = readClipboardData(formats);
     if (lastClipboardData.content !== clipboardData.content) {
       console.log("Clipboard text changed:", clipboardData);
-      mainWindow.webContents.send("clipboard-changed", clipboardData);
+
+      const handleData = handleClipboardData(clipboardData);
+      console.log(readFileSync(), 'readFileSync()');
+      const data = JSON.parse(readFileSync() || `[]`);
+      const newData = [handleData];
+
+      if (data?.length > 0) {
+        newData.push(...data);
+      }
+
+      writeToFile(JSON.stringify(newData));
+
+      mainWindow.webContents.send("clipboard-changed", newData);
+
       lastClipboardData = clipboardData;
     }
   }, 1000); // 每秒检查一次

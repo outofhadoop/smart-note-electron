@@ -37,11 +37,12 @@ function createWindow() {
     mainWindow.show();
   });
 
-  handleClipboardChanged(mainWindow)
+  handleClipboardChanged(mainWindow, ipcMain, app)
 
   ipcMain.on('show-window', () => {
     mainWindow.setBounds({ x: width - windowConfig.width + 1, y: 0, width: windowConfig.width, height: height });
   });
+  
 
   // 隐藏窗口
   // ipcMain.on('hide-window', () => {

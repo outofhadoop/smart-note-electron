@@ -4,3 +4,12 @@
   gap: 2px;
   padding: 10px;
 }
+
+.title {
+  display: -webkit-box;           /* 必须结合 -webkit-line-clamp 使用 */
+  -webkit-box-orient: vertical;   /* 设置盒子元素的排列方式为纵向 */
+  -webkit-line-clamp: 3;          /* 限制显示的行数 */
+  overflow: hidden;               /* 隐藏超出内容 */
+  text-overflow: ellipsis;        /* 使文本溢出部分显示省略号 */
+  word-break: break-all;
+}
