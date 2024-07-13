@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import View from "../View";
 import { CopyOutlined } from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/electronApi";
-const { v4: uuid } = require("uuid");
 const styles = require("./index.module.less");
 
 enum ClipboardType {
@@ -26,6 +25,13 @@ const ClipboardList = () => {
       console.log("剪切板内容:", newContent, event);
       handleClipboardChangeData(newContent);
     });
+    // 首次运行时，读取历史记录
+    const historyList = window?.electronAPI?.readClipboardHistory?.();
+    console.log('historyList', historyList);
+    
+    if (historyList?.length) {
+      setData(historyList)
+    }
   }, []);
 
   /**

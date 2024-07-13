@@ -32,12 +32,12 @@
       document?.addEventListener?.("mouseleave", (e) => {
         window?.electronAPI?.hideWindow?.();
       });
-      window?.electronAPI?.onClipboardChanged?.((event, newContent) => {
-        // const clipboardContentDiv =
-        //   document.getElementById("clipboard-content");
-        // clipboardContentDiv.textContent = `Clipboard content: ${newContent}`;
-        console.log('Clipboard content:', newContent);
-      });
+      // window?.electronAPI?.onClipboardChanged?.((event, newContent) => {
+      //   // const clipboardContentDiv =
+      //   //   document.getElementById("clipboard-content");
+      //   // clipboardContentDiv.textContent = `Clipboard content: ${newContent}`;
+      //   console.log('Clipboard content:', newContent);
+      // });
     </script>
   </body>
 </html>

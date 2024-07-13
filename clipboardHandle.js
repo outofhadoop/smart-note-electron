@@ -56,6 +56,11 @@ let lastClipboardData = readClipboardData(lastFormats);
 const handleClipboardChanged = (mainWindow, ipcMain, app) => {
   const filePath = path.join(app.getPath("documents"), "clipboard.txt");
 
+  /**
+   * 处理剪贴板数据
+   * @param {*} clipboardData
+   * @returns
+   */
   const handleClipboardData = (clipboardData) => {
     const commonInfo = {
       id: uuid(),
@@ -78,6 +83,10 @@ const handleClipboardChanged = (mainWindow, ipcMain, app) => {
     }
   };
 
+  /**
+   * 写入文件
+   * @param {*} data
+   */
   const writeToFile = (data) => {
     // 检测文件是否存在，如果不存在则创建文件
     try {
@@ -96,6 +105,10 @@ const handleClipboardChanged = (mainWindow, ipcMain, app) => {
     }
   };
 
+  /**
+   * 读取文件
+   * @returns
+   */
   const readFileSync = () => {
     if (!fs.existsSync(filePath)) {
       fs.writeFileSync(filePath, "", {
@@ -115,15 +128,30 @@ const handleClipboardChanged = (mainWindow, ipcMain, app) => {
     writeToFile(data);
   });
 
+  ipcMain.on("read-clipboard-history", (event) => {
+    const data = JSON.parse(readFileSync() || `[]`);
+    console.log('hsitpryhsitpryhsitpryhsitpryhsitpryhsitpryhsitpry', event);
+    event.returnValue = data;
+  });
+
+  // {
+  //   /**
+  //    * 首次运行时，发送剪贴板历史数据
+  //    */
+  //   const data = JSON.parse(readFileSync() || `[]`);
+  //   console.log(data, '历史数据');
+  //   mainWindow.webContents.send("clipboard-changed", data);
+  // }
+
   // 轮询剪贴板内容的变化
   setInterval(() => {
     const formats = clipboard.availableFormats();
     const clipboardData = readClipboardData(formats);
+
     if (lastClipboardData.content !== clipboardData.content) {
       console.log("Clipboard text changed:", clipboardData);
 
       const handleData = handleClipboardData(clipboardData);
-      console.log(readFileSync(), 'readFileSync()');
       const data = JSON.parse(readFileSync() || `[]`);
       const newData = [handleData];
 
@@ -136,6 +164,7 @@ const handleClipboardChanged = (mainWindow, ipcMain, app) => {
       mainWindow.webContents.send("clipboard-changed", newData);
 
       lastClipboardData = clipboardData;
+
     }
   }, 1000); // 每秒检查一次
 };

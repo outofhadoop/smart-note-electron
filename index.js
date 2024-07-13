@@ -38,6 +38,7 @@ function createWindow() {
   });
 
   handleClipboardChanged(mainWindow, ipcMain, app)
+  
 
   ipcMain.on('show-window', () => {
     mainWindow.setBounds({ x: width - windowConfig.width + 1, y: 0, width: windowConfig.width, height: height });
@@ -52,7 +53,6 @@ function createWindow() {
 
 app.whenReady().then(() => {
   createWindow();
-
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

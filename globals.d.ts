@@ -19,5 +19,6 @@ interface Window {
       callback: (event: any, newContent: ClipboardItem[]) => void
     ) => void;
     copyToClipboard: (data: any) => void;
+    readClipboardHistory: () => ClipboardItem[];
   };
 }
