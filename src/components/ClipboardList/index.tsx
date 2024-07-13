@@ -1,5 +1,5 @@
 import type { RadioChangeEvent } from "antd";
-import { Button, List, Radio, Timeline } from "antd";
+import { Button, List, Radio, Timeline, Image } from "antd";
 import React, { useEffect, useState } from "react";
 import View from "../View";
 import { CopyOutlined } from "@ant-design/icons";
@@ -12,7 +12,6 @@ enum ClipboardType {
   FILE = "file",
 }
 
-
 const ClipboardList = () => {
   const [data, setData] = useState<ClipboardItem[]>([]);
 
@@ -21,16 +20,18 @@ const ClipboardList = () => {
   };
 
   useEffect(() => {
-    window?.electronAPI?.onClipboardChanged?.((event, newContent: ClipboardItem[]) => {
-      console.log("剪切板内容:", newContent, event);
-      handleClipboardChangeData(newContent);
-    });
+    window?.electronAPI?.onClipboardChanged?.(
+      (event, newContent: ClipboardItem[]) => {
+        console.log("剪切板内容:", newContent, event);
+        handleClipboardChangeData(newContent);
+      }
+    );
     // 首次运行时，读取历史记录
     const historyList = window?.electronAPI?.readClipboardHistory?.();
-    console.log('historyList', historyList);
-    
+    console.log("historyList", historyList);
+
     if (historyList?.length) {
-      setData(historyList)
+      setData(historyList);
     }
   }, []);
 
@@ -38,7 +39,6 @@ const ClipboardList = () => {
    * 复制内容
    */
   const copyContent = (item: ClipboardItem) => {
-
     switch (item.type) {
       case ClipboardType.TEXT:
         copyToClipboard({
@@ -50,6 +50,39 @@ const ClipboardList = () => {
           image: item.content,
         });
         break;
+    }
+  };
+
+  const renderListItem = (item: ClipboardItem) => {
+    switch (item.type) {
+      case ClipboardType.TEXT:
+        return (
+          <List.Item.Meta
+            title={<View className={styles.title}>{item.title}</View>}
+            description={`${item.time}`}
+          />
+        );
+      case ClipboardType.IMAGE:
+        return (
+          <List.Item.Meta
+            title={
+              <View className={styles.title}>
+                <Image width={200} src={item.title} />
+              </View>
+            }
+            description={`${item.time}`}
+          />
+        );
+
+      case ClipboardType.FILE:
+        break;
+      default:
+        return (
+          <List.Item.Meta
+            title={<View className={styles.title}>{item.title}</View>}
+            description={`${item.time}`}
+          />
+        );
     }
   };
 
@@ -71,10 +104,7 @@ const ClipboardList = () => {
             ]}
             key={item.id}
           >
-            <List.Item.Meta
-              title={<View className={styles.title}>{item.title}</View>}
-              description={`${item.time}`}
-            />
+            {renderListItem(item)}
           </List.Item>
         )}
       />

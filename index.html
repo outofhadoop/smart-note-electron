@@ -5,13 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Electron App</title>
     <style>
+      *::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 5px;
+        border: 1px solid rgba(0, 0, 0, 0.3);
+      }
+      *::-webkit-scrollbar {
+        width: 5px;
+      }
       body {
         margin: 0;
         display: flex;
         align-items: center;
         justify-content: center;
         height: 100vh;
-        /* background-color: #2e2c29; */
+        background-color: transparent;
         color: white;
         font-family: Arial, sans-serif;
       }

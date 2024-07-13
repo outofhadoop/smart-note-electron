@@ -22,6 +22,8 @@ function createWindow() {
     y: 0,
     frame: false,
     alwaysOnTop: true,
+    transparent: true,
+    skipTaskbar: true,
     resizable: false,
     movable: false,
     show: true, // 初始时隐藏窗口
@@ -31,7 +33,9 @@ function createWindow() {
   });
 
   mainWindow.loadFile('./dist/index.html');
-  mainWindow.webContents.openDevTools()
+
+  // mainWindow.webContents.openDevTools()
+
   // 窗口完全打开时才显示
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
@@ -46,9 +50,9 @@ function createWindow() {
   
 
   // 隐藏窗口
-  // ipcMain.on('hide-window', () => {
-  //   mainWindow.setBounds({ x: width - 1, y: 0, width: windowConfig.width, height: height });
-  // });
+  ipcMain.on('hide-window', () => {
+    mainWindow.setBounds({ x: width - 1, y: 0, width: windowConfig.width, height: height });
+  });
 }
 
 app.whenReady().then(() => {

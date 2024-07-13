@@ -1,4 +1,4 @@
-const { clipboard } = require("electron");
+const { clipboard, nativeImage } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const { v4: uuid } = require("uuid");
@@ -120,7 +120,16 @@ const handleClipboardChanged = (mainWindow, ipcMain, app) => {
 
   // 复制内容到剪贴板
   ipcMain.on("copy-to-clipboard", (event, data) => {
-    clipboard.write(data);
+    switch (data.type) {
+      case ClipboardType.IMAGE:
+        const image = nativeImage.createFromDataURL(data.content);
+        clipboard.writeImage(image);
+        break;
+      default:
+        clipboard.write(data);
+        break;
+    }
+    
     event.returnValue = "Copied";
   });
 
@@ -130,7 +139,6 @@ const handleClipboardChanged = (mainWindow, ipcMain, app) => {
 
   ipcMain.on("read-clipboard-history", (event) => {
     const data = JSON.parse(readFileSync() || `[]`);
-    console.log('hsitpryhsitpryhsitpryhsitpryhsitpryhsitpryhsitpry', event);
     event.returnValue = data;
   });
 
@@ -153,10 +161,14 @@ const handleClipboardChanged = (mainWindow, ipcMain, app) => {
 
       const handleData = handleClipboardData(clipboardData);
       const data = JSON.parse(readFileSync() || `[]`);
-      const newData = [handleData];
-
-      if (data?.length > 0) {
-        newData.push(...data);
+      let newData = []
+      
+      const sameDataIndex = data.findIndex(item => item.content === handleData.content);
+      if (sameDataIndex !== -1) {
+        const sameData = data.splice(sameDataIndex, 1);
+        newData.push(...sameData, ...data);
+      } else {
+        newData = [handleData, ...data];
       }
 
       writeToFile(JSON.stringify(newData));
