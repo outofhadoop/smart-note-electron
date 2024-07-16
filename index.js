@@ -34,7 +34,7 @@ function createWindow() {
 
   mainWindow.loadFile('./dist/index.html');
 
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 
   // 窗口完全打开时才显示
   mainWindow.once('ready-to-show', () => {

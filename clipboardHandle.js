@@ -7,6 +7,8 @@ const ClipboardType = {
   TEXT: "text",
   IMAGE: "image",
   FILE: "file",
+  HTML: "html",
+  RTF: "rtf",
 };
 
 /**
@@ -25,28 +27,36 @@ const readClipboardData = (formats) => {
   if (formats.includes("image/png") || formats.includes("image/jpeg")) {
     const image = clipboard.readImage();
     const imgDataURL = image.toDataURL();
-    return { type: "image", content: imgDataURL };
+    return { type: ClipboardType.IMAGE, content: imgDataURL };
   }
 
   // 处理 HTML 数据
   if (formats.includes("text/html")) {
     const html = clipboard.readHTML();
-    return { type: "html", content: html };
+    return { type: ClipboardType.HTML, content: html };
   }
 
   // 处理 RTF 数据
   if (formats.includes("text/rtf")) {
     const rtf = clipboard.readRTF();
     mainWindow.webContents.send("clipboard-changed");
-    return { type: "rtf", content: rtf };
+    return { type: ClipboardType.RTF, content: rtf };
   }
 
   // 处理文件路径数据
-  if (formats.includes("Files")) {
-    const files = clipboard.read("Files");
-    return { type: "files", content: files };
+  if (formats.includes('text/uri-list')) {
+    const uriList = clipboard.read('FileNameW');
+    console.log(formats, typeof uriList, uriList, 'uriList');
+    if (uriList) {
+      // const uris = uriList.split('\n').filter(uri => uri.trim() !== '');
+      return { type: ClipboardType.FILE, content: uriList };
+    } else {
+      return { type: ClipboardType.FILE, content: '未知文件' };
+    }
+  } else if (formats.includes("public.file-url")) {
+    filePath = clipboard.read('public.file-url').replace('file://', '');
+    return { type: ClipboardType.FILE, content: filePath };
   }
-  console.log("no data !!!!!");
   return null;
 };
 
@@ -76,6 +86,11 @@ const handleClipboardChanged = (mainWindow, ipcMain, app) => {
           ...commonInfo,
         };
       case ClipboardType.IMAGE:
+        return {
+          title: clipboardData.content,
+          ...commonInfo,
+        };
+      case ClipboardType.FILE:
         return {
           title: clipboardData.content,
           ...commonInfo,
@@ -156,7 +171,7 @@ const handleClipboardChanged = (mainWindow, ipcMain, app) => {
     const formats = clipboard.availableFormats();
     const clipboardData = readClipboardData(formats);
 
-    if (lastClipboardData.content !== clipboardData.content) {
+    if (lastClipboardData?.content !== clipboardData?.content) {
       console.log("Clipboard text changed:", clipboardData);
 
       const handleData = handleClipboardData(clipboardData);

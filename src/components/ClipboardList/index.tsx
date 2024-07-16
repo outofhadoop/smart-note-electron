@@ -2,8 +2,9 @@ import type { RadioChangeEvent } from "antd";
 import { Button, List, Radio, Timeline, Image } from "antd";
 import React, { useEffect, useState } from "react";
 import View from "../View";
-import { CopyOutlined } from "@ant-design/icons";
+import { CommentOutlined, CopyOutlined } from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/electronApi";
+import { fetchAndDisplayStream } from "../../serverApi";
 const styles = require("./index.module.less");
 
 enum ClipboardType {
@@ -47,6 +48,7 @@ const ClipboardList = () => {
         break;
       case ClipboardType.IMAGE:
         copyToClipboard({
+          ...item,
           image: item.content,
         });
         break;
@@ -75,7 +77,12 @@ const ClipboardList = () => {
         );
 
       case ClipboardType.FILE:
-        break;
+        return (
+          <List.Item.Meta
+            title={<View className={styles.title}>{item.title}</View>}
+            description={`${item.time}`}
+          />
+        );
       default:
         return (
           <List.Item.Meta
@@ -85,6 +92,10 @@ const ClipboardList = () => {
         );
     }
   };
+
+  const askAI = (item: ClipboardItem) => {
+    fetchAndDisplayStream('你好')
+  }
 
   return (
     <View className={styles.container}>
@@ -101,6 +112,13 @@ const ClipboardList = () => {
               >
                 <CopyOutlined />
               </Button>,
+              <Button
+              onClick={() => askAI(item)}
+              type="text"
+              key="list-loadmore-more"
+            >
+              <CommentOutlined />
+            </Button>,
             ]}
             key={item.id}
           >
