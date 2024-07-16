@@ -11,6 +11,7 @@
     "electron": "^31.1.0",
     "electron-log": "^5.1.5",
     "iohook": "^0.9.3",
+    "marked": "^13.0.2",
     "postcss": "^8.4.39",
     "postcss-loader": "^8.1.1",
     "react": "^18.3.1",

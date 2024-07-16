@@ -1,8 +1,17 @@
 import type { RadioChangeEvent } from "antd";
-import { Button, List, Radio, Timeline, Image } from "antd";
+import {
+  Button,
+  List,
+  Radio,
+  Timeline,
+  Image,
+  Segmented,
+  Space,
+  Input,
+} from "antd";
 import React, { useEffect, useState } from "react";
 import View from "../View";
-import { CommentOutlined, CopyOutlined } from "@ant-design/icons";
+import { CommentOutlined, CopyOutlined, StopOutlined, UpOutlined } from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/electronApi";
 import { fetchAndDisplayStream } from "../../serverApi";
 const styles = require("./index.module.less");
@@ -15,7 +24,11 @@ enum ClipboardType {
 
 const ClipboardList = () => {
   const [data, setData] = useState<ClipboardItem[]>([]);
-
+  const [type, setType] = useState<"clipboard" | "ai">("clipboard");
+  const [askSomething, setAskSomething] = useState<string>("");
+  const [requireIng, setRequireIng] = useState<boolean>(false);
+  const [appendContent, setAppendContent] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const handleClipboardChangeData = (newContent: ClipboardItem[]) => {
     setData(newContent);
   };
@@ -94,38 +107,93 @@ const ClipboardList = () => {
   };
 
   const askAI = (item: ClipboardItem) => {
-    fetchAndDisplayStream('你好')
-  }
+    setType("ai");
+    setAskSomething(item.content);
+  };
+
+  const submitAsk = () => {
+    fetchAndDisplayStream(`${askSomething}\n${appendContent}`, (content) => {
+      setLoading(false);
+      setRequireIng(true);
+      setAppendContent(content.content);
+
+      if (content.done) {
+        setRequireIng(false);
+      }
+    });
+  };
 
   return (
     <View className={styles.container}>
-      <List
-        itemLayout="horizontal"
-        dataSource={data}
-        renderItem={(item, index) => (
-          <List.Item
-            actions={[
+      <View>
+        <Segmented
+          value={type}
+          options={[
+            { label: "剪切板", value: "clipboard" },
+            { label: "AI", value: "ai" },
+          ]}
+          onChange={(value) => {
+            console.log(value);
+            setType(value as "clipboard" | "ai");
+          }}
+        />
+      </View>
+
+      {type === "clipboard" && (
+        <List
+          itemLayout="horizontal"
+          dataSource={data}
+          renderItem={(item, index) => (
+            <List.Item
+              actions={[
+                <Button
+                  onClick={() => copyContent(item)}
+                  type="text"
+                  key="list-loadmore-more"
+                >
+                  <CopyOutlined />
+                </Button>,
+                <Button
+                  onClick={() => askAI(item)}
+                  type="text"
+                  key="list-loadmore-more"
+                >
+                  <CommentOutlined />
+                </Button>,
+              ]}
+              key={item.id}
+            >
+              {renderListItem(item)}
+            </List.Item>
+          )}
+        />
+      )}
+      {type === "ai" && (
+        <View>
+          <Space.Compact style={{ width: "100%" }}>
+            <Input
+              addonBefore={<View>{askSomething.slice(0, 10)}...</View>}
+              onChange={(e) => setAppendContent(e.target.value)}
+            />
+            {requireIng ? (
               <Button
-                onClick={() => copyContent(item)}
+                onClick={() => setRequireIng(false)}
                 type="text"
                 key="list-loadmore-more"
               >
-                <CopyOutlined />
-              </Button>,
+                <StopOutlined />
+              </Button>
+            ) : (
               <Button
-              onClick={() => askAI(item)}
-              type="text"
-              key="list-loadmore-more"
-            >
-              <CommentOutlined />
-            </Button>,
-            ]}
-            key={item.id}
-          >
-            {renderListItem(item)}
-          </List.Item>
-        )}
-      />
+                loading={loading}
+                onClick={submitAsk}
+                icon={<UpOutlined />}
+                type="default"
+              ></Button>
+            )}
+          </Space.Compact>
+        </View>
+      )}
     </View>
   );
 };
