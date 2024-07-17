@@ -50,7 +50,6 @@ const ClipboardList = () => {
   useEffect(() => {
     window?.electronAPI?.onClipboardChanged?.(
       (event, newContent: ClipboardItem[]) => {
-        console.log("剪切板内容:", newContent, event);
         handleClipboardChangeData(newContent);
       }
     );
