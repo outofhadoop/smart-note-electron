@@ -2,14 +2,35 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px;
+  height: 100%;
+  overflow: scroll;
 }
 
 .title {
-  display: -webkit-box;           /* 必须结合 -webkit-line-clamp 使用 */
-  -webkit-box-orient: vertical;   /* 设置盒子元素的排列方式为纵向 */
-  -webkit-line-clamp: 3;          /* 限制显示的行数 */
-  overflow: hidden;               /* 隐藏超出内容 */
-  text-overflow: ellipsis;        /* 使文本溢出部分显示省略号 */
+  display: -webkit-box; /* 必须结合 -webkit-line-clamp 使用 */
+  -webkit-box-orient: vertical; /* 设置盒子元素的排列方式为纵向 */
+  -webkit-line-clamp: 3; /* 限制显示的行数 */
+  overflow: hidden; /* 隐藏超出内容 */
+  text-overflow: ellipsis; /* 使文本溢出部分显示省略号 */
   word-break: break-all;
+}
+
+.Segmented {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  top: 0;
+  position: sticky;
+  background: white;
+  z-index: 99;
+  flex-direction: column;
+}
+
+.aiResponse {
+  padding: 10px;
+}
+
+
+.clipboardList {
+  padding: 10px;
 }

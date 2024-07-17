@@ -11,9 +11,15 @@ import {
 } from "antd";
 import React, { useEffect, useState } from "react";
 import View from "../View";
-import { CommentOutlined, CopyOutlined, StopOutlined, UpOutlined } from "@ant-design/icons";
+import {
+  CommentOutlined,
+  CopyOutlined,
+  StopOutlined,
+  UpOutlined,
+} from "@ant-design/icons";
 import { copyToClipboard } from "../../utils/electronApi";
 import { fetchAndDisplayStream } from "../../serverApi";
+import { marked } from "marked";
 const styles = require("./index.module.less");
 
 enum ClipboardType {
@@ -25,8 +31,16 @@ enum ClipboardType {
 const ClipboardList = () => {
   const [data, setData] = useState<ClipboardItem[]>([]);
   const [type, setType] = useState<"clipboard" | "ai">("clipboard");
-  const [askSomething, setAskSomething] = useState<string>("");
+  const [askSomething, setAskSomething] = useState<{
+    prompt: string;
+    images: string[];
+  }>({
+    prompt: "",
+    images: [],
+  });
+  const [stopAskHandle, setStopAskHandle] = useState<() => void>(() => {});
   const [requireIng, setRequireIng] = useState<boolean>(false);
+  const [aiResponse, setAiResponse] = useState<string>("");
   const [appendContent, setAppendContent] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const handleClipboardChangeData = (newContent: ClipboardItem[]) => {
@@ -108,24 +122,51 @@ const ClipboardList = () => {
 
   const askAI = (item: ClipboardItem) => {
     setType("ai");
-    setAskSomething(item.content);
+    if (item.type === ClipboardType.IMAGE) {
+      setAskSomething({
+        prompt: "",
+        images: [item.content],
+      });
+    } else {
+      setAskSomething({
+        prompt: item.content,
+        images: [],
+      });
+    }
   };
 
   const submitAsk = () => {
-    fetchAndDisplayStream(`${askSomething}\n${appendContent}`, (content) => {
-      setLoading(false);
-      setRequireIng(true);
-      setAppendContent(content.content);
-
-      if (content.done) {
-        setRequireIng(false);
-      }
+    setLoading(true);
+    const controller = new AbortController();
+    const signal = controller.signal;
+    setStopAskHandle(() => {
+      return () => {
+        controller.abort();
+      };
     });
+    fetchAndDisplayStream(
+      `${askSomething}\n${appendContent}`,
+      (res) => {
+        setLoading(false);
+        setRequireIng(true);
+        setAiResponse(res.content);
+
+        if (res.done) {
+          setRequireIng(false);
+        }
+      },
+      signal
+    );
+  };
+
+  const stopAsk = () => {
+    stopAskHandle?.();
+    setRequireIng(false);
   };
 
   return (
     <View className={styles.container}>
-      <View>
+      <View className={styles.Segmented}>
         <Segmented
           value={type}
           options={[
@@ -137,50 +178,18 @@ const ClipboardList = () => {
             setType(value as "clipboard" | "ai");
           }}
         />
-      </View>
-
-      {type === "clipboard" && (
-        <List
-          itemLayout="horizontal"
-          dataSource={data}
-          renderItem={(item, index) => (
-            <List.Item
-              actions={[
-                <Button
-                  onClick={() => copyContent(item)}
-                  type="text"
-                  key="list-loadmore-more"
-                >
-                  <CopyOutlined />
-                </Button>,
-                <Button
-                  onClick={() => askAI(item)}
-                  type="text"
-                  key="list-loadmore-more"
-                >
-                  <CommentOutlined />
-                </Button>,
-              ]}
-              key={item.id}
-            >
-              {renderListItem(item)}
-            </List.Item>
-          )}
-        />
-      )}
-      {type === "ai" && (
-        <View>
-          <Space.Compact style={{ width: "100%" }}>
+        {type === "ai" && (
+          <Space.Compact style={{ width: "100%", marginTop: "10px" }}>
             <Input
-              addonBefore={<View>{askSomething.slice(0, 10)}...</View>}
+              addonBefore={
+                askSomething?.prompt?.length > 0 ? (
+                  <View>{askSomething?.prompt?.slice(0, 10)}...</View>
+                ) : null
+              }
               onChange={(e) => setAppendContent(e.target.value)}
             />
             {requireIng ? (
-              <Button
-                onClick={() => setRequireIng(false)}
-                type="text"
-                key="list-loadmore-more"
-              >
+              <Button onClick={stopAsk} type="default" key="list-loadmore-more">
                 <StopOutlined />
               </Button>
             ) : (
@@ -192,6 +201,43 @@ const ClipboardList = () => {
               ></Button>
             )}
           </Space.Compact>
+        )}
+      </View>
+
+      {type === "clipboard" && (
+        <View className={styles.clipboardList}>
+          <List
+            itemLayout="horizontal"
+            dataSource={data}
+            renderItem={(item, index) => (
+              <List.Item
+                actions={[
+                  <Button
+                    onClick={() => copyContent(item)}
+                    type="default"
+                    key="list-loadmore-more"
+                  >
+                    <CopyOutlined />
+                  </Button>,
+                  <Button
+                    onClick={() => askAI(item)}
+                    type="default"
+                    key="list-loadmore-more"
+                  >
+                    <CommentOutlined />
+                  </Button>,
+                ]}
+                key={item.id}
+              >
+                {renderListItem(item)}
+              </List.Item>
+            )}
+          />
+        </View>
+      )}
+      {type === "ai" && (
+        <View className={styles.aiResponse}>
+          <div dangerouslySetInnerHTML={{ __html: marked(aiResponse) }} />
         </View>
       )}
     </View>
