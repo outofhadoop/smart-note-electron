@@ -12,21 +12,20 @@ function createWindow() {
   const windowConfig = {
     width: 500,
     height: height,
-    backgroundColor: '#000',
   };
 
   mainWindow = new BrowserWindow({
     width: windowConfig.width,
     height: height,
-    x: width - 1, // 初始位置设置为屏幕右侧边缘
+    // x: width - 1, // 初始位置设置为屏幕右侧边缘
     y: 0,
     frame: false,
-    alwaysOnTop: true,
+    // alwaysOnTop: true,
     transparent: true,
-    skipTaskbar: true,
-    resizable: false,
-    movable: false,
-    show: true, // 初始时隐藏窗口
+    // skipTaskbar: true,
+    resizable: true,
+    // movable: false,
+    // show: true, // 初始时隐藏窗口
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
@@ -34,7 +33,7 @@ function createWindow() {
 
   mainWindow.loadFile('./dist/index.html');
 
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 
   // 窗口完全打开时才显示
   mainWindow.once('ready-to-show', () => {
@@ -44,15 +43,15 @@ function createWindow() {
   handleClipboardChanged(mainWindow, ipcMain, app)
   
 
-  ipcMain.on('show-window', () => {
-    mainWindow.setBounds({ x: width - windowConfig.width + 1, y: 0, width: windowConfig.width, height: height });
-  });
+  // ipcMain.on('show-window', () => {
+  //   mainWindow.setBounds({ x: width - windowConfig.width + 1, y: 0, width: windowConfig.width, height: height });
+  // });
   
 
-  // 隐藏窗口
-  ipcMain.on('hide-window', () => {
-    mainWindow.setBounds({ x: width - 1, y: 0, width: windowConfig.width, height: height });
-  });
+  // // 隐藏窗口
+  // ipcMain.on('hide-window', () => {
+  //   mainWindow.setBounds({ x: width - 1, y: 0, width: windowConfig.width, height: height });
+  // });
 }
 
 app.whenReady().then(() => {

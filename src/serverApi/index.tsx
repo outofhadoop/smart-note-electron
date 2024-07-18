@@ -1,4 +1,4 @@
-const BASE_URL = "http:// 10.16.12.239";
+const BASE_URL = "http://10.16.12.239";
 
 const BASE_PORT = 11434;
 

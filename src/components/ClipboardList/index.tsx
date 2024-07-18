@@ -144,7 +144,7 @@ const ClipboardList = () => {
       };
     });
     fetchAndDisplayStream(
-      `${askSomething}\n${appendContent}`,
+      `${askSomething?.prompt ?? ''}\n${appendContent}`,
       (res) => {
         setLoading(false);
         setRequireIng(true);
