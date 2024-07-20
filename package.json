@@ -10,7 +10,6 @@
     "css-loader": "^7.1.2",
     "electron-log": "^5.1.5",
     "electron-squirrel-startup": "^1.0.1",
-    "iohook": "^0.9.3",
     "marked": "^13.0.2",
     "postcss": "^8.4.39",
     "postcss-loader": "^8.1.1",

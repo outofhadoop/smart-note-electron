@@ -149,7 +149,6 @@ const ClipboardList = () => {
         setLoading(false);
         setRequireIng(true);
         setAiResponse(res.content);
-
         if (res.done) {
           setRequireIng(false);
         }

@@ -17,14 +17,16 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: windowConfig.width,
     height: height,
-    // x: width - 1, // 初始位置设置为屏幕右侧边缘
+    x: width - windowConfig.width, // 初始位置设置为屏幕右侧边缘
     y: 0,
-    frame: false,
+    frame: true,
     // alwaysOnTop: true,
     transparent: true,
+    autoHideMenuBar: true,
+    title: '剪切板历史',
     // skipTaskbar: true,
     resizable: true,
-    // movable: false,
+    movable: true,
     // show: true, // 初始时隐藏窗口
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
