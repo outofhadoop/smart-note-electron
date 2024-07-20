@@ -3,6 +3,9 @@ declare module "*.less" {
   export default content;
 }
 
+/**
+ * 剪切板的数据类型
+ */
 interface ClipboardItem {
   id: string;
   title: string;
@@ -20,5 +23,6 @@ interface Window {
     ) => void;
     copyToClipboard: (data: any) => void;
     readClipboardHistory: () => ClipboardItem[];
+    showWindow: () => {};
   };
 }

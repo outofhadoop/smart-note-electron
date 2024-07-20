@@ -17,7 +17,7 @@ import {
   StopOutlined,
   UpOutlined,
 } from "@ant-design/icons";
-import { copyToClipboard } from "../../utils/electronApi";
+import { copyToClipboard, onClipboardChanged, readClipboardHistory } from "../../utils/electronApi";
 import { fetchAndDisplayStream } from "../../serverApi";
 import { marked } from "marked";
 const styles = require("./index.module.less");
@@ -38,24 +38,26 @@ const ClipboardList = () => {
     prompt: "",
     images: [],
   });
-  const [stopAskHandle, setStopAskHandle] = useState<() => void>(() => {});
+  const [stopAskHandle, setStopAskHandle] = useState<() => void>(() => { });
   const [requireIng, setRequireIng] = useState<boolean>(false);
   const [aiResponse, setAiResponse] = useState<string>("");
   const [appendContent, setAppendContent] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+
   const handleClipboardChangeData = (newContent: ClipboardItem[]) => {
     setData(newContent);
   };
 
   useEffect(() => {
-    window?.electronAPI?.onClipboardChanged?.(
-      (event, newContent: ClipboardItem[]) => {
-        handleClipboardChangeData(newContent);
-      }
-    );
+    /**
+     * 监听复制内容改变
+     */
+    onClipboardChanged((event, newContent: ClipboardItem[]) => {
+      handleClipboardChangeData(newContent);
+    })
+
     // 首次运行时，读取历史记录
-    const historyList = window?.electronAPI?.readClipboardHistory?.();
-    console.log("historyList", historyList);
+    const historyList = readClipboardHistory();
 
     if (historyList?.length) {
       setData(historyList);

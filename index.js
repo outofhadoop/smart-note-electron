@@ -23,6 +23,7 @@ function createWindow() {
     // alwaysOnTop: true,
     transparent: true,
     autoHideMenuBar: true,
+    fullScreenable: false,
     title: '剪切板历史',
     // skipTaskbar: true,
     resizable: true,

@@ -1,7 +1,12 @@
-const BASE_URL = "http://10.16.12.239";
+const BASE_URL = "http://localhost";
 
 const BASE_PORT = 11434;
 
+/**
+ * @param question 问题文本
+ * @param callback 返回回调
+ * @param signal AbortSignal
+ */
 export async function fetchAndDisplayStream(
   question: string,
   callback: (content: {
