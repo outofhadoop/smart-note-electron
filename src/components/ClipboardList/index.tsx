@@ -8,7 +8,9 @@ import {
   Segmented,
   Space,
   Input,
+  Popover,
 } from "antd";
+import hljs from "highlight.js";
 import React, { useEffect, useState } from "react";
 import View from "../View";
 import {
@@ -17,9 +19,14 @@ import {
   StopOutlined,
   UpOutlined,
 } from "@ant-design/icons";
-import { copyToClipboard, onClipboardChanged, readClipboardHistory } from "../../utils/electronApi";
+import {
+  copyToClipboard,
+  onClipboardChanged,
+  readClipboardHistory,
+} from "../../utils/electronApi";
 import { fetchAndDisplayStream } from "../../serverApi";
 import { marked } from "marked";
+import { removeBase64Prefix } from "../../utils";
 const styles = require("./index.module.less");
 
 enum ClipboardType {
@@ -33,12 +40,12 @@ const ClipboardList = () => {
   const [type, setType] = useState<"clipboard" | "ai">("clipboard");
   const [askSomething, setAskSomething] = useState<{
     prompt: string;
-    images: string[];
+    images: {noBase64Prefix: string; allContent: string }[];
   }>({
     prompt: "",
     images: [],
   });
-  const [stopAskHandle, setStopAskHandle] = useState<() => void>(() => { });
+  const [stopAskHandle, setStopAskHandle] = useState<() => void>(() => {});
   const [requireIng, setRequireIng] = useState<boolean>(false);
   const [aiResponse, setAiResponse] = useState<string>("");
   const [appendContent, setAppendContent] = useState<string>("");
@@ -54,7 +61,7 @@ const ClipboardList = () => {
      */
     onClipboardChanged((event, newContent: ClipboardItem[]) => {
       handleClipboardChangeData(newContent);
-    })
+    });
 
     // 首次运行时，读取历史记录
     const historyList = readClipboardHistory();
@@ -62,6 +69,22 @@ const ClipboardList = () => {
     if (historyList?.length) {
       setData(historyList);
     }
+
+    // const renderer = new marked.Renderer();
+    // // @ts-ignore
+    // renderer.code = (code, language) => {
+    //   if (language === undefined) {
+    //     language = "plaintext";
+    //   }
+    //   const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+    //   return `<pre><code class="hljs ${validLanguage}">${hljs.highlight(validLanguage, code).value}</code></pre>`;
+    // };
+  
+    // marked.setOptions({
+    //   renderer: renderer,
+    //   gfm: true,
+    //   breaks: true
+    // });
   }, []);
 
   /**
@@ -126,7 +149,10 @@ const ClipboardList = () => {
     if (item.type === ClipboardType.IMAGE) {
       setAskSomething({
         prompt: "",
-        images: [item.content],
+        images: [{
+          allContent: item.content,
+          noBase64Prefix: removeBase64Prefix(item.content),
+        }],
       });
     } else {
       setAskSomething({
@@ -135,7 +161,9 @@ const ClipboardList = () => {
       });
     }
   };
-
+  /**
+   * 提交询问
+   */
   const submitAsk = () => {
     setLoading(true);
     const controller = new AbortController();
@@ -145,9 +173,13 @@ const ClipboardList = () => {
         controller.abort();
       };
     });
-    fetchAndDisplayStream(
-      `${askSomething?.prompt ?? ''}\n${appendContent}`,
-      (res) => {
+
+    /**
+     * 请求获取ollama AI回复
+     */
+    fetchAndDisplayStream({
+      question: `${askSomething?.prompt ?? ""}\n${appendContent}`,
+      callback: (res) => {
         setLoading(false);
         setRequireIng(true);
         setAiResponse(res.content);
@@ -155,13 +187,26 @@ const ClipboardList = () => {
           setRequireIng(false);
         }
       },
-      signal
-    );
+      signal,
+      images: askSomething?.images ?? [],
+    });
   };
-
+  /**
+   * 停止询问
+   */
   const stopAsk = () => {
     stopAskHandle?.();
     setRequireIng(false);
+  };
+
+  /**
+   * 清空剪切板复制的内容
+   */
+  const removeAskSomething = () => {
+    setAskSomething({
+      prompt: "",
+      images: [],
+    });
   };
 
   return (
@@ -182,8 +227,33 @@ const ClipboardList = () => {
           <Space.Compact style={{ width: "100%", marginTop: "10px" }}>
             <Input
               addonBefore={
-                askSomething?.prompt?.length > 0 ? (
-                  <View>{askSomething?.prompt?.slice(0, 10)}...</View>
+                askSomething?.prompt?.length > 0 ||
+                askSomething?.images?.length > 0 ? (
+                  <Popover
+                    trigger="hover"
+                    content={
+                      <View className={styles.askSomethingPopoverContainer}>
+                        <View>
+                          {askSomething?.prompt}
+                          {askSomething?.images?.length > 0 ? (
+                            <View>
+                              {askSomething?.images?.map((item, index) => {
+                                return (
+                                  <Image key={index} width={200} src={item?.allContent} />
+                                );
+                              })}
+                            </View>
+                          ) : null}
+                        </View>
+                        <Button danger type="link" onClick={removeAskSomething}>
+                          删除这些内容
+                        </Button>
+                      </View>
+                    }
+                    title="剪切板内容"
+                  >
+                    {askSomething?.prompt?.slice(0, 10)}...
+                  </Popover>
                 ) : null
               }
               onChange={(e) => setAppendContent(e.target.value)}
