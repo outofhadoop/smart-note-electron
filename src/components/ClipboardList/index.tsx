@@ -19,6 +19,7 @@ import {
 } from "@ant-design/icons";
 import { copyToClipboard, onClipboardChanged, readClipboardHistory } from "../../utils/electronApi";
 import { fetchAndDisplayStream } from "../../serverApi";
+import ChatInput from "../ChatInput";
 import { marked } from "marked";
 const styles = require("./index.module.less");
 
@@ -238,6 +239,7 @@ const ClipboardList = () => {
       {type === "ai" && (
         <View className={styles.aiResponse}>
           <div dangerouslySetInnerHTML={{ __html: marked(aiResponse) }} />
+          <ChatInput />
         </View>
       )}
     </View>

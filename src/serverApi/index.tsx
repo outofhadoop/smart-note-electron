@@ -54,3 +54,21 @@ export async function fetchAndDisplayStream(
     console.log(error);
   }
 }
+
+/**
+ * 测试ollama连接
+ */
+export const testOllamaConnection = async () => {
+  const response = await fetch(`${BASE_URL}:${BASE_PORT}`);
+  console.log(response);
+  return response.ok;
+};
+
+/**
+ * 获取模型列表
+ */
+export const getModelList = async () => {
+  const response = await fetch(`${BASE_URL}:${BASE_PORT}/api/tags`);
+  const {models: moduleList}: {models: { name: string; digest: string }[]} = await response.json();
+  return moduleList;
+};
