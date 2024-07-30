@@ -4,6 +4,6 @@
 /yarn.lock
 /build
 ./launch.json
-.vscode
+# .vscode
 ./package-lock.json
 out/
