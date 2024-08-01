@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
-import { fetchAndDisplayStream, getModelList, testOllamaConnection } from "../../serverApi";
+import {
+  fetchAndDisplayStream,
+  getModelList,
+  testOllamaConnection,
+} from "../../serverApi";
 
 const useOllama = () => {
   const [connected, setConnected] = useState(false);
   const [requireIng, setRequireIng] = useState(false);
-  const [stopAskHandle, setStopAskHandle] = useState<() => void>(() => { });
+  const [stopAskHandle, setStopAskHandle] = useState<() => void>(() => {});
   const [aiResponse, setAiResponse] = useState<string>("");
   const [appendContent, setAppendContent] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -49,9 +53,9 @@ const useOllama = () => {
         controller.abort();
       };
     });
-    fetchAndDisplayStream(
-      `${askSomething?.prompt ?? ''}\n${appendContent}`,
-      (res) => {
+    fetchAndDisplayStream({
+      question: `${askSomething?.prompt ?? ""}\n${appendContent}`,
+      callback: (res) => {
         setLoading(false);
         setRequireIng(true);
         setAiResponse(res.content);
@@ -59,15 +63,14 @@ const useOllama = () => {
           setRequireIng(false);
         }
       },
-      signal
-    );
+      signal,
+    });
   };
 
   const stopAsk = () => {
     stopAskHandle?.();
     setRequireIng(false);
   };
-
 
   return {
     connected,

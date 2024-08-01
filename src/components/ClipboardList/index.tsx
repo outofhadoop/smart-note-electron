@@ -10,7 +10,7 @@ import {
   Input,
   Popover,
 } from "antd";
-import hljs from "highlight.js";
+// import hljs from "highlight.js";
 import React, { useEffect, useState } from "react";
 import View from "../View";
 import {
@@ -41,7 +41,7 @@ const ClipboardList = () => {
   const [type, setType] = useState<"clipboard" | "ai">("clipboard");
   const [askSomething, setAskSomething] = useState<{
     prompt: string;
-    images: {noBase64Prefix: string; allContent: string }[];
+    images: { noBase64Prefix: string; allContent: string }[];
   }>({
     prompt: "",
     images: [],
@@ -80,7 +80,7 @@ const ClipboardList = () => {
     //   const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
     //   return `<pre><code class="hljs ${validLanguage}">${hljs.highlight(validLanguage, code).value}</code></pre>`;
     // };
-  
+
     // marked.setOptions({
     //   renderer: renderer,
     //   gfm: true,
@@ -150,10 +150,12 @@ const ClipboardList = () => {
     if (item.type === ClipboardType.IMAGE) {
       setAskSomething({
         prompt: "",
-        images: [{
-          allContent: item.content,
-          noBase64Prefix: removeBase64Prefix(item.content),
-        }],
+        images: [
+          {
+            allContent: item.content,
+            noBase64Prefix: removeBase64Prefix(item.content),
+          },
+        ],
       });
     } else {
       setAskSomething({
@@ -224,57 +226,79 @@ const ClipboardList = () => {
             setType(value as "clipboard" | "ai");
           }}
         />
+        {/* AI */}
         {type === "ai" && (
-          <Space.Compact style={{ width: "100%", marginTop: "10px" }}>
-            <Input
-              addonBefore={
-                askSomething?.prompt?.length > 0 ||
-                askSomething?.images?.length > 0 ? (
-                  <Popover
-                    trigger="hover"
-                    content={
-                      <View className={styles.askSomethingPopoverContainer}>
-                        <View>
-                          {askSomething?.prompt}
-                          {askSomething?.images?.length > 0 ? (
-                            <View>
-                              {askSomething?.images?.map((item, index) => {
-                                return (
-                                  <Image key={index} width={200} src={item?.allContent} />
-                                );
-                              })}
-                            </View>
-                          ) : null}
+          <>
+            <Space.Compact style={{ width: "100%", marginTop: "10px" }}>
+              <Input
+                addonBefore={
+                  askSomething?.prompt?.length > 0 ||
+                  askSomething?.images?.length > 0 ? (
+                    <Popover
+                      trigger="hover"
+                      content={
+                        <View className={styles.askSomethingPopoverContainer}>
+                          <View>
+                            {askSomething?.prompt}
+                            {askSomething?.images?.length > 0 ? (
+                              <View>
+                                {askSomething?.images?.map((item, index) => {
+                                  return (
+                                    <Image
+                                      key={index}
+                                      width={200}
+                                      src={item?.allContent}
+                                    />
+                                  );
+                                })}
+                              </View>
+                            ) : null}
+                          </View>
+                          <Button
+                            danger
+                            type="link"
+                            onClick={removeAskSomething}
+                          >
+                            删除这些内容
+                          </Button>
                         </View>
-                        <Button danger type="link" onClick={removeAskSomething}>
-                          删除这些内容
-                        </Button>
-                      </View>
-                    }
-                    title="剪切板内容"
-                  >
-                    {askSomething?.prompt?.slice(0, 10)}...
-                  </Popover>
-                ) : null
-              }
-              onChange={(e) => setAppendContent(e.target.value)}
-            />
-            {requireIng ? (
-              <Button onClick={stopAsk} type="default" key="list-loadmore-more">
-                <StopOutlined />
-              </Button>
-            ) : (
-              <Button
-                loading={loading}
-                onClick={submitAsk}
-                icon={<UpOutlined />}
-                type="default"
-              ></Button>
-            )}
-          </Space.Compact>
+                      }
+                      title="剪切板内容"
+                    >
+                      {askSomething?.prompt?.slice(0, 10)}...
+                    </Popover>
+                  ) : null
+                }
+                onChange={(e) => setAppendContent(e.target.value)}
+              />
+              {requireIng ? (
+                <Button
+                  onClick={stopAsk}
+                  type="default"
+                  key="list-loadmore-more"
+                >
+                  <StopOutlined />
+                </Button>
+              ) : (
+                <Button
+                  loading={loading}
+                  onClick={submitAsk}
+                  icon={<UpOutlined />}
+                  type="default"
+                ></Button>
+              )}
+            </Space.Compact>
+          </>
         )}
       </View>
+      {type === "ai" && (
+        <View className={styles.aiResponse}>
+          <div dangerouslySetInnerHTML={{ __html: marked(aiResponse) }} />
+          <ChatInput />
+        </View>
+      )}
 
+      {/* 剪切板列表 */}
       {type === "clipboard" && (
         <View className={styles.clipboardList}>
           <List
@@ -304,12 +328,6 @@ const ClipboardList = () => {
               </List.Item>
             )}
           />
-        </View>
-      )}
-      {type === "ai" && (
-        <View className={styles.aiResponse}>
-          <div dangerouslySetInnerHTML={{ __html: marked(aiResponse) }} />
-          <ChatInput />
         </View>
       )}
     </View>

@@ -3,6 +3,7 @@ import View from "../View";
 import { Button, Input, Space } from "antd";
 import useOllama from "./useOllama";
 import { StopOutlined, UpOutlined } from "@ant-design/icons";
+const styles = require("./index.module.less");
 const { TextArea } = Input;
 
 const ChatInput = (props: {
@@ -23,22 +24,21 @@ const ChatInput = (props: {
   } = useOllama();
 
   return (
-    <View>
-      <Space.Compact style={{ width: "100%", marginTop: "10px" }}>
-        <TextArea rows={4} defaultValue={defaultValue} onChange={onChange} />
+    <View className={styles.chatInput}>
+        <TextArea  className={styles.textArea} rows={1} defaultValue={defaultValue} onChange={onChange} />
         {requireIng ? (
           <Button onClick={stopAsk} type="default" key="list-loadmore-more">
             <StopOutlined />
           </Button>
         ) : (
           <Button
+            className={styles.submitBtn}
             loading={loading}
             onClick={submitAsk}
             icon={<UpOutlined />}
             type="default"
           ></Button>
         )}
-      </Space.Compact>
     </View>
   );
 };
