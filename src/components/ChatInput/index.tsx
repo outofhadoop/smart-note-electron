@@ -25,20 +25,30 @@ const ChatInput = (props: {
 
   return (
     <View className={styles.chatInput}>
-        <TextArea  className={styles.textArea} rows={1} defaultValue={defaultValue} onChange={onChange} />
-        {requireIng ? (
-          <Button onClick={stopAsk} type="default" key="list-loadmore-more">
-            <StopOutlined />
-          </Button>
-        ) : (
-          <Button
-            className={styles.submitBtn}
-            loading={loading}
-            onClick={submitAsk}
-            icon={<UpOutlined />}
-            type="default"
-          ></Button>
-        )}
+      <View className={styles.textAreaWrapper}>
+        <TextArea
+          allowClear
+          autoSize={{ minRows: 1, maxRows: 10 }}
+          className={styles.textArea}
+          rows={1}
+          defaultValue={defaultValue}
+          onChange={onChange}
+        />
+      </View>
+
+      {requireIng ? (
+        <Button onClick={stopAsk} type="default" key="list-loadmore-more">
+          <StopOutlined />
+        </Button>
+      ) : (
+        <Button
+          className={styles.submitBtn}
+          loading={loading}
+          onClick={submitAsk}
+          icon={<UpOutlined />}
+          type="default"
+        ></Button>
+      )}
     </View>
   );
 };
