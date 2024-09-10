@@ -23,16 +23,18 @@ export async function fetchAndDisplayStream({
   images?: {noBase64Prefix: string; allContent: string }[];
 }) {
   try {
-    // const contentDiv = document.getElementById("content");
-    const response = await fetch(`${BASE_URL}:${BASE_PORT}/api/generate`, {
+    const response = await fetch(`${BASE_URL}:${BASE_PORT}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: images?.length > 0 ? "llava-llama3" : "llama3",
-        prompt: `你是一个剪切板小助手，由探迹的前端同学开发。下面问题使用中文回答：\n${
-          question ?? ""
-        }`,
-        images: images?.map((item) => item.noBase64Prefix),
+        messages: [{
+          role: "user",
+          content: '你是一个剪切板小助手，由瞰觅的前端同学开发。下面问题使用简体中文回答。',
+        },{
+          role: "user",
+          content: question,
+        }],
+        model: "llama3.1",
       }),
       signal,
     });
@@ -52,10 +54,10 @@ export async function fetchAndDisplayStream({
 
       const resString = decoder.decode(result?.value, { stream: true });
       const parseRes = JSON.parse(resString);
-      markdownContent += parseRes?.response;
+      markdownContent += parseRes?.message?.content ?? '';
       callback?.({
         content: markdownContent,
-        singleContent: parseRes?.response,
+        singleContent: parseRes?.message?.content ?? '',
         done: result?.done,
       });
     }
@@ -64,12 +66,12 @@ export async function fetchAndDisplayStream({
   }
 }
 
+
 /**
  * 测试ollama连接
  */
 export const testOllamaConnection = async () => {
   const response = await fetch(`${BASE_URL}:${BASE_PORT}`);
-  console.log(response);
   return response.ok;
 };
 

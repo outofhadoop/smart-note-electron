@@ -44,6 +44,7 @@ function createWindow() {
   });
 
   handleClipboardChanged(mainWindow, ipcMain, app)
+  chatWithAIHandle(mainWindow, ipcMain, app)
   
 
   // ipcMain.on('show-window', () => {

@@ -39,7 +39,7 @@ const useOllama = () => {
       getModelList().then((modelList) => {
         console.log(modelList);
         setModelList(modelList);
-        setModel(modelList[0].name);
+        setModel(modelList[0]?.name);
       });
     }
   }, [connected]);
@@ -86,6 +86,7 @@ const useOllama = () => {
     askSomething,
     setAskSomething,
     submitAsk,
+    setAppendContent,
     stopAsk,
   };
 };

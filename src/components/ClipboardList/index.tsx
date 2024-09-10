@@ -24,7 +24,6 @@ import {
   onClipboardChanged,
   readClipboardHistory,
 } from "../../utils/electronApi";
-import { fetchAndDisplayStream } from "../../serverApi";
 import ChatInput from "../ChatInput";
 import { marked } from "marked";
 import { removeBase64Prefix } from "../../utils";
@@ -46,11 +45,7 @@ const ClipboardList = () => {
     prompt: "",
     images: [],
   });
-  const [stopAskHandle, setStopAskHandle] = useState<() => void>(() => {});
-  const [requireIng, setRequireIng] = useState<boolean>(false);
   const [aiResponse, setAiResponse] = useState<string>("");
-  const [appendContent, setAppendContent] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
 
   const handleClipboardChangeData = (newContent: ClipboardItem[]) => {
     setData(newContent);
@@ -70,22 +65,6 @@ const ClipboardList = () => {
     if (historyList?.length) {
       setData(historyList);
     }
-
-    // const renderer = new marked.Renderer();
-    // // @ts-ignore
-    // renderer.code = (code, language) => {
-    //   if (language === undefined) {
-    //     language = "plaintext";
-    //   }
-    //   const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
-    //   return `<pre><code class="hljs ${validLanguage}">${hljs.highlight(validLanguage, code).value}</code></pre>`;
-    // };
-
-    // marked.setOptions({
-    //   renderer: renderer,
-    //   gfm: true,
-    //   breaks: true
-    // });
   }, []);
 
   /**
@@ -107,6 +86,9 @@ const ClipboardList = () => {
     }
   };
 
+  /**
+   * 渲染拷贝的列表项
+   */
   const renderListItem = (item: ClipboardItem) => {
     switch (item.type) {
       case ClipboardType.TEXT:
@@ -164,53 +146,6 @@ const ClipboardList = () => {
       });
     }
   };
-  /**
-   * 提交询问
-   */
-  const submitAsk = () => {
-    setLoading(true);
-    const controller = new AbortController();
-    const signal = controller.signal;
-    setStopAskHandle(() => {
-      return () => {
-        controller.abort();
-      };
-    });
-
-    /**
-     * 请求获取ollama AI回复
-     */
-    fetchAndDisplayStream({
-      question: `${askSomething?.prompt ?? ""}\n${appendContent}`,
-      callback: (res) => {
-        setLoading(false);
-        setRequireIng(true);
-        setAiResponse(res.content);
-        if (res.done) {
-          setRequireIng(false);
-        }
-      },
-      signal,
-      images: askSomething?.images ?? [],
-    });
-  };
-  /**
-   * 停止询问
-   */
-  const stopAsk = () => {
-    stopAskHandle?.();
-    setRequireIng(false);
-  };
-
-  /**
-   * 清空剪切板复制的内容
-   */
-  const removeAskSomething = () => {
-    setAskSomething({
-      prompt: "",
-      images: [],
-    });
-  };
 
   return (
     <View className={styles.container}>
@@ -222,79 +157,17 @@ const ClipboardList = () => {
             { label: "AI", value: "ai" },
           ]}
           onChange={(value) => {
-            console.log(value);
             setType(value as "clipboard" | "ai");
           }}
         />
-        {/* AI */}
-        {type === "ai" && (
-          <>
-            <Space.Compact style={{ width: "100%", marginTop: "10px" }}>
-              <Input
-                addonBefore={
-                  askSomething?.prompt?.length > 0 ||
-                  askSomething?.images?.length > 0 ? (
-                    <Popover
-                      trigger="hover"
-                      content={
-                        <View className={styles.askSomethingPopoverContainer}>
-                          <View>
-                            {askSomething?.prompt}
-                            {askSomething?.images?.length > 0 ? (
-                              <View>
-                                {askSomething?.images?.map((item, index) => {
-                                  return (
-                                    <Image
-                                      key={index}
-                                      width={200}
-                                      src={item?.allContent}
-                                    />
-                                  );
-                                })}
-                              </View>
-                            ) : null}
-                          </View>
-                          <Button
-                            danger
-                            type="link"
-                            onClick={removeAskSomething}
-                          >
-                            删除这些内容
-                          </Button>
-                        </View>
-                      }
-                      title="剪切板内容"
-                    >
-                      {askSomething?.prompt?.slice(0, 10)}...
-                    </Popover>
-                  ) : null
-                }
-                onChange={(e) => setAppendContent(e.target.value)}
-              />
-              {requireIng ? (
-                <Button
-                  onClick={stopAsk}
-                  type="default"
-                  key="list-loadmore-more"
-                >
-                  <StopOutlined />
-                </Button>
-              ) : (
-                <Button
-                  loading={loading}
-                  onClick={submitAsk}
-                  icon={<UpOutlined />}
-                  type="default"
-                ></Button>
-              )}
-            </Space.Compact>
-          </>
-        )}
+
       </View>
       {type === "ai" && (
         <View className={styles.aiResponse}>
           <div dangerouslySetInnerHTML={{ __html: marked(aiResponse) }} />
-          <ChatInput />
+          <View className={styles.chatInputWrapper}>
+            <ChatInput aiResponseCallback={setAiResponse} />
+          </View>
         </View>
       )}
 
