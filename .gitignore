@@ -5,5 +5,5 @@
 /build
 ./launch.json
 # .vscode
-./package-lock.json
+package-lock.json
 out/

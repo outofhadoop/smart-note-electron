@@ -24,7 +24,7 @@ const useOllama = () => {
     images: [],
   });
 
-  const [model, setModel] = useState<string>("");
+  const [model, setModel] = useState<string | undefined>("");
 
   useEffect(() => {
     // 测试ollama连接
@@ -39,7 +39,7 @@ const useOllama = () => {
       getModelList().then((modelList) => {
         console.log(modelList);
         setModelList(modelList);
-        setModel(modelList[0]?.name);
+        setModel(modelList?.[0]?.name ?? '');
       });
     }
   }, [connected]);
