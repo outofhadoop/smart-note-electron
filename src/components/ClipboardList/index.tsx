@@ -25,16 +25,26 @@ import {
   readClipboardHistory,
 } from "../../utils/electronApi";
 import ChatInput from "../ChatInput";
-import { marked } from "marked";
+import { Marked  } from "marked";
 import { removeBase64Prefix } from "../../utils";
 const styles = require("./index.module.less");
-
+import hljs from "highlight.js";
+import "highlight.js/styles/tokyo-night-dark.css";
+import { markedHighlight } from "marked-highlight";
 enum ClipboardType {
   TEXT = "text",
   IMAGE = "image",
   FILE = "file",
 }
-
+const marked = new Marked(
+  markedHighlight({
+    langPrefix: 'hljs language-',
+    highlight(code: string, lang: string, info: string) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    }
+  })
+);
 const ClipboardList = () => {
   const [data, setData] = useState<ClipboardItem[]>([]);
   const [type, setType] = useState<"clipboard" | "ai">("clipboard");
@@ -160,11 +170,14 @@ const ClipboardList = () => {
             setType(value as "clipboard" | "ai");
           }}
         />
-
       </View>
       {type === "ai" && (
         <View className={styles.aiResponse}>
-          <div dangerouslySetInnerHTML={{ __html: marked(aiResponse) }} />
+          <div
+            dangerouslySetInnerHTML={{
+              __html: marked.parse(aiResponse),
+            }}
+          />
           <View className={styles.chatInputWrapper}>
             <ChatInput aiResponseCallback={setAiResponse} />
           </View>
