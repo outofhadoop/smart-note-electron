@@ -1,4 +1,4 @@
-const BASE_URL = "http://10.81.50.101";
+const BASE_URL = "http://localhost";
 
 const BASE_PORT = 11434;
 
@@ -9,6 +9,7 @@ const BASE_PORT = 11434;
  */
 export async function fetchAndDisplayStream({
   question,
+  messages,
   callback,
   images = [],
   signal,
@@ -20,20 +21,22 @@ export async function fetchAndDisplayStream({
     singleContent: string;
   }) => void;
   signal?: AbortSignal;
-  images?: {noBase64Prefix: string; allContent: string }[];
+  messages?: { role: string; content: string }[];
+  images?: { noBase64Prefix: string; allContent: string }[];
 }) {
   try {
     const response = await fetch(`${BASE_URL}:${BASE_PORT}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        messages: [{
-          role: "user",
-          content: '你是一个使用瞰觅科技公司广州办公室本地服务器中的ollama跑起来的聊天机器人，默认模型使用llama3.1。下面问题使用简体中文回答。',
-        },{
-          role: "user",
-          content: question,
-        }],
+        messages: [
+          {
+            role: "user",
+            content:
+              "你是一个使用瞰觅科技公司广州办公室本地服务器中的ollama跑起来的聊天机器人，默认模型使用llama3.1。下面问题使用简体中文回答。",
+          },
+          ...(messages || []),
+        ],
         model: "llama3.1",
       }),
       signal,
@@ -54,10 +57,10 @@ export async function fetchAndDisplayStream({
 
       const resString = decoder.decode(result?.value, { stream: true });
       const parseRes = JSON.parse(resString);
-      markdownContent += parseRes?.message?.content ?? '';
+      markdownContent += parseRes?.message?.content ?? "";
       callback?.({
         content: markdownContent,
-        singleContent: parseRes?.message?.content ?? '',
+        singleContent: parseRes?.message?.content ?? "",
         done: result?.done,
       });
     }
@@ -66,17 +69,16 @@ export async function fetchAndDisplayStream({
   }
 }
 
-
 /**
  * 测试ollama连接
  */
 export const testOllamaConnection = async () => {
   try {
-  const response = await fetch(`${BASE_URL}:${BASE_PORT}`);
-  return response.ok;
+    const response = await fetch(`${BASE_URL}:${BASE_PORT}`);
+    return response.ok;
   } catch (error) {
     console.error("testOllamaConnection error:", error);
-    return false
+    return false;
   }
 };
 
@@ -86,10 +88,11 @@ export const testOllamaConnection = async () => {
 export const getModelList = async () => {
   try {
     const response = await fetch(`${BASE_URL}:${BASE_PORT}/api/tags`);
-    const {models: moduleList}: {models: { name: string; digest: string }[]} = await response.json();
+    const {
+      models: moduleList,
+    }: { models: { name: string; digest: string }[] } = await response.json();
     return moduleList;
   } catch (error) {
     console.error("getModelList error:", error);
   }
-  
 };

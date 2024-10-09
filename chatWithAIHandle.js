@@ -5,5 +5,7 @@ const appendChatMessage = (mainWindow, ipcMain, app) => {
 }
 
 const chatWithAIHandle = (mainWindow, ipcMain, app) => {
-
+    ipcMain.on('write-chat-history', (event, data) => {
+        writeToFile(data);
+    });
 }   

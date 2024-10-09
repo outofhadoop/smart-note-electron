@@ -10,8 +10,10 @@ const ChatInput = (props: {
   defaultValue?: string;
   onChange?: React.ChangeEventHandler<HTMLTextAreaElement>;
   aiResponseCallback?: (response: string) => void;
+  onSubmit?: (appendContent: string) => void;
+  messages?: { role: string; content: string }[];
 }) => {
-  const { defaultValue = "", onChange, aiResponseCallback } = props;
+  const { defaultValue = "", onChange, aiResponseCallback, onSubmit, messages } = props;
   const {
     connected,
     requireIng,
@@ -23,8 +25,9 @@ const ChatInput = (props: {
     askSomething,
     setAskSomething,
     modelList,
+    appendContent,
     setAppendContent,
-  } = useOllama();
+  } = useOllama(messages);
 
   useEffect(() => {
     // 将aiResponse抛出
@@ -32,6 +35,11 @@ const ChatInput = (props: {
       aiResponseCallback?.(aiResponse);
     }
   }, [aiResponse, aiResponseCallback]);
+
+  const handleSubmit = () => {
+    onSubmit?.(appendContent);
+    submitAsk();
+  };
 
   return (
     <View className={styles.chatInput}>
@@ -86,7 +94,7 @@ const ChatInput = (props: {
         <Button
           className={styles.submitBtn}
           loading={loading}
-          onClick={submitAsk}
+          onClick={handleSubmit}
           icon={<UpOutlined />}
           type="default"
         ></Button>

@@ -5,7 +5,7 @@ import {
   testOllamaConnection,
 } from "../../serverApi";
 
-const useOllama = () => {
+const useOllama = (messages?: { role: string; content: string }[]) => {
   const [connected, setConnected] = useState(false);
   const [requireIng, setRequireIng] = useState(false);
   const [stopAskHandle, setStopAskHandle] = useState<() => void>(() => {});
@@ -55,6 +55,7 @@ const useOllama = () => {
     });
     fetchAndDisplayStream({
       question: `${askSomething?.prompt ?? ""}\n${appendContent}`,
+      messages,
       callback: (res) => {
         setLoading(false);
         setRequireIng(true);
@@ -88,6 +89,7 @@ const useOllama = () => {
     submitAsk,
     setAppendContent,
     stopAsk,
+    appendContent,
   };
 };
 

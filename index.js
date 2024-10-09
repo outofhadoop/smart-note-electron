@@ -1,7 +1,7 @@
 const { app, BrowserWindow, screen, ipcMain  } = require('electron');
 const path = require('path');
 const { handleClipboardChanged } = require('./clipboardHandle');
-
+const { chatWithAIHandle } = require('./chatWithAIHandle');
 
 
 let mainWindow;

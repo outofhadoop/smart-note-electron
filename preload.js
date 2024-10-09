@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   cacheClipboard: (message) => ipcRenderer.send('cache-clipboard', message),
   onClipboardChanged: (callback) => ipcRenderer.on('clipboard-changed', callback),
   readClipboardHistory: () => ipcRenderer.sendSync('read-clipboard-history'),
+  writeChatHistory: (data) => ipcRenderer.send('write-chat-history', data),
+  readChatHistory: () => ipcRenderer.sendSync('read-chat-history'),
   copyToClipboard: (data) => ipcRenderer.send('copy-to-clipboard', data),
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,

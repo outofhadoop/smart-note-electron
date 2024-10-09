@@ -1,4 +1,5 @@
 import type { RadioChangeEvent } from 'antd'
+import { v4 as uuidv4 } from 'uuid';
 import {
   Button,
   List,
@@ -28,6 +29,7 @@ import {
   readClipboardHistory,
 } from '../../utils/electronApi'
 import ChatInput from '../ChatInput'
+import OllamaHistoryManager from '../../utils/ollamaChatHistory'
 import { removeBase64Prefix } from '../../utils'
 import { Marked  } from "marked";
 const styles = require("./index.module.less");
@@ -51,9 +53,18 @@ const marked = new Marked(
   })
 );
 const ClipboardList = () => {
+  const [ollamaHistoryManager] = useState(new OllamaHistoryManager());
   const [data, setData] = useState<ClipboardItem[]>([])
   const [type, setType] = useState<'clipboard' | 'ai'>('clipboard')
   const [open, setOpen] = useState(false)
+  const [chatHistory, setChatHistory] = useState<HistoryItem[]>([])
+  const [currentHistory, setCurrentHistory] = useState<HistoryItem>({
+    messages: [],
+    answer: '',
+    timestamp: Date.now(),
+    title: '',
+    id: uuidv4(),
+  })
   const [askSomething, setAskSomething] = useState<{
     prompt: string
     images: { noBase64Prefix: string; allContent: string }[]
@@ -81,6 +92,10 @@ const ClipboardList = () => {
     if (historyList?.length) {
       setData(historyList)
     }
+
+    // 加载历史记录
+    const history = ollamaHistoryManager.getHistory() ?? [];
+    setChatHistory(history);
   }, [])
 
   /**
@@ -167,6 +182,29 @@ const ClipboardList = () => {
     setOpen(false)
   }
 
+  const handleSubmit = (appendContent: string) => {
+    // 是否已经存在
+    const history = ollamaHistoryManager.getHistory()
+    const index = history.findIndex((item) => item.id === currentHistory?.id)
+    if (index !== -1) {
+      history[index].messages.push({ role: 'user', content: appendContent })
+      if (index !== 0) {
+        // 把这条记录移动到最前面
+        const item = history.splice(index, 1)[0];
+        history.unshift(item);
+      }
+      ollamaHistoryManager.updateAllHistory(history)
+      return
+    }
+
+    ollamaHistoryManager.addHistory({
+      ...currentHistory,
+      timestamp: Date.now(),
+      title: appendContent.slice(0, 10),
+    });
+    setChatHistory(ollamaHistoryManager.getHistory())
+  }
+
   return (
     <View className={styles.container}>
       <View className={styles.Segmented}>
@@ -193,9 +231,9 @@ const ClipboardList = () => {
             }}
           />
           <View className={styles.chatInputWrapper}>
-            <ChatInput aiResponseCallback={setAiResponse} />
+            <ChatInput messages={currentHistory?.messages} aiResponseCallback={setAiResponse} onSubmit={handleSubmit} />
           </View>
-          {/* 历史记录 */}
+          {/* chat历史记录 */}
           <Drawer
             title="历史记录"
             placement="left"
