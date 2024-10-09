@@ -67,10 +67,10 @@ class OllamaHistoryManager {
    * @param {string} id - 历史记录的 id
    * @param {string} answer - Ollama 的回答
    */
-  updateHistory(id, answer) {
+  updateHistory(id, messages) {
     const index = this.history.findIndex((item) => item.id === id);
     if (index !== -1) {
-      this.history[index].answer = answer;
+      this.history[index].messages = messages;
       this.saveHistory();
     }
   }

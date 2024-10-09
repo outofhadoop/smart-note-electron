@@ -12,8 +12,13 @@ const ChatInput = (props: {
   aiResponseCallback?: (response: string) => void;
   onSubmit?: (appendContent: string) => void;
   messages?: { role: string; content: string }[];
+  finishAnswer?: (res: {
+    content: string;
+    done?: boolean;
+    singleContent: string;
+  }) => void;
 }) => {
-  const { defaultValue = "", onChange, aiResponseCallback, onSubmit, messages } = props;
+  const { defaultValue = "", onChange, aiResponseCallback, onSubmit, messages, finishAnswer } = props;
   const {
     connected,
     requireIng,
@@ -27,7 +32,7 @@ const ChatInput = (props: {
     modelList,
     appendContent,
     setAppendContent,
-  } = useOllama(messages);
+  } = useOllama(messages, finishAnswer);
 
   useEffect(() => {
     // 将aiResponse抛出

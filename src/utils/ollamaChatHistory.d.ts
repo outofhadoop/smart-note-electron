@@ -37,7 +37,7 @@ declare class OllamaHistoryManager {
    * @param {string} id - 历史记录的 id
    * @param {string} answer - Ollama 的回答
    */
-  updateHistory(id, answer): void;
+  updateHistory(id, messages): void;
 
   /**   
    * 更新所有历史记录

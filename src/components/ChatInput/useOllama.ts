@@ -5,7 +5,14 @@ import {
   testOllamaConnection,
 } from "../../serverApi";
 
-const useOllama = (messages?: { role: string; content: string }[]) => {
+const useOllama = (
+  messages?: { role: string; content: string }[],
+  finishAnswer?: (res: {
+    content: string;
+    done?: boolean;
+    singleContent: string;
+  }) => void
+) => {
   const [connected, setConnected] = useState(false);
   const [requireIng, setRequireIng] = useState(false);
   const [stopAskHandle, setStopAskHandle] = useState<() => void>(() => {});
@@ -39,7 +46,7 @@ const useOllama = (messages?: { role: string; content: string }[]) => {
       getModelList().then((modelList) => {
         console.log(modelList);
         setModelList(modelList);
-        setModel(modelList?.[0]?.name ?? '');
+        setModel(modelList?.[0]?.name ?? "");
       });
     }
   }, [connected]);
@@ -55,13 +62,20 @@ const useOllama = (messages?: { role: string; content: string }[]) => {
     });
     fetchAndDisplayStream({
       question: `${askSomething?.prompt ?? ""}\n${appendContent}`,
-      messages,
+      messages: [
+        ...(messages || []),
+        {
+          role: "user",
+          content: `${askSomething?.prompt ?? ""}\n${appendContent}`,
+        },
+      ],
       callback: (res) => {
         setLoading(false);
         setRequireIng(true);
         setAiResponse(res.content);
         if (res.done) {
           setRequireIng(false);
+          finishAnswer?.(res);
         }
       },
       signal,
