@@ -1,4 +1,4 @@
-import type { RadioChangeEvent } from "antd";
+import type { RadioChangeEvent } from 'antd'
 import {
   Button,
   List,
@@ -9,32 +9,37 @@ import {
   Space,
   Input,
   Popover,
-} from "antd";
+  Divider,
+  Drawer,
+} from 'antd'
+import { HistoryOutlined } from '@ant-design/icons'
 // import hljs from "highlight.js";
-import React, { useEffect, useState } from "react";
-import View from "../View";
+import React, { useEffect, useState } from 'react'
+import View from '../View'
 import {
   CommentOutlined,
   CopyOutlined,
   StopOutlined,
   UpOutlined,
-} from "@ant-design/icons";
+} from '@ant-design/icons'
 import {
   copyToClipboard,
   onClipboardChanged,
   readClipboardHistory,
-} from "../../utils/electronApi";
-import ChatInput from "../ChatInput";
+} from '../../utils/electronApi'
+import ChatInput from '../ChatInput'
+import { removeBase64Prefix } from '../../utils'
 import { Marked  } from "marked";
-import { removeBase64Prefix } from "../../utils";
 const styles = require("./index.module.less");
 import hljs from "highlight.js";
 import "highlight.js/styles/tokyo-night-dark.css";
 import { markedHighlight } from "marked-highlight";
+
+
 enum ClipboardType {
-  TEXT = "text",
-  IMAGE = "image",
-  FILE = "file",
+  TEXT = 'text',
+  IMAGE = 'image',
+  FILE = 'file',
 }
 const marked = new Marked(
   markedHighlight({
@@ -46,36 +51,37 @@ const marked = new Marked(
   })
 );
 const ClipboardList = () => {
-  const [data, setData] = useState<ClipboardItem[]>([]);
-  const [type, setType] = useState<"clipboard" | "ai">("clipboard");
+  const [data, setData] = useState<ClipboardItem[]>([])
+  const [type, setType] = useState<'clipboard' | 'ai'>('clipboard')
+  const [open, setOpen] = useState(false)
   const [askSomething, setAskSomething] = useState<{
-    prompt: string;
-    images: { noBase64Prefix: string; allContent: string }[];
+    prompt: string
+    images: { noBase64Prefix: string; allContent: string }[]
   }>({
-    prompt: "",
+    prompt: '',
     images: [],
-  });
-  const [aiResponse, setAiResponse] = useState<string>("");
+  })
+  const [aiResponse, setAiResponse] = useState<string>('')
 
   const handleClipboardChangeData = (newContent: ClipboardItem[]) => {
-    setData(newContent);
-  };
+    setData(newContent)
+  }
 
   useEffect(() => {
     /**
      * 监听复制内容改变
      */
     onClipboardChanged((event, newContent: ClipboardItem[]) => {
-      handleClipboardChangeData(newContent);
-    });
+      handleClipboardChangeData(newContent)
+    })
 
     // 首次运行时，读取历史记录
-    const historyList = readClipboardHistory();
+    const historyList = readClipboardHistory()
 
     if (historyList?.length) {
-      setData(historyList);
+      setData(historyList)
     }
-  }, []);
+  }, [])
 
   /**
    * 复制内容
@@ -85,16 +91,16 @@ const ClipboardList = () => {
       case ClipboardType.TEXT:
         copyToClipboard({
           text: item.content,
-        });
-        break;
+        })
+        break
       case ClipboardType.IMAGE:
         copyToClipboard({
           ...item,
           image: item.content,
-        });
-        break;
+        })
+        break
     }
-  };
+  }
 
   /**
    * 渲染拷贝的列表项
@@ -107,7 +113,7 @@ const ClipboardList = () => {
             title={<View className={styles.title}>{item.title}</View>}
             description={`${item.time}`}
           />
-        );
+        )
       case ClipboardType.IMAGE:
         return (
           <List.Item.Meta
@@ -118,7 +124,7 @@ const ClipboardList = () => {
             }
             description={`${item.time}`}
           />
-        );
+        )
 
       case ClipboardType.FILE:
         return (
@@ -126,48 +132,56 @@ const ClipboardList = () => {
             title={<View className={styles.title}>{item.title}</View>}
             description={`${item.time}`}
           />
-        );
+        )
       default:
         return (
           <List.Item.Meta
             title={<View className={styles.title}>{item.title}</View>}
             description={`${item.time}`}
           />
-        );
+        )
     }
-  };
+  }
 
   const askAI = (item: ClipboardItem) => {
-    setType("ai");
+    setType('ai')
     if (item.type === ClipboardType.IMAGE) {
       setAskSomething({
-        prompt: "",
+        prompt: '',
         images: [
           {
             allContent: item.content,
             noBase64Prefix: removeBase64Prefix(item.content),
           },
         ],
-      });
+      })
     } else {
       setAskSomething({
         prompt: item.content,
         images: [],
-      });
+      })
     }
-  };
+  }
+
+  const onClose = () => {
+    setOpen(false)
+  }
 
   return (
     <View className={styles.container}>
       <View className={styles.Segmented}>
+        {/* 历史记录 */}
+        {type === 'ai' && <Button className={styles.historyBtn} onClick={() => setOpen(true)}>
+          <HistoryOutlined />
+        </Button>}
         <Segmented
           value={type}
           options={[
-            { label: "剪切板", value: "clipboard" },
-            { label: "AI", value: "ai" },
+            { label: '剪切板', value: 'clipboard' },
+            { label: 'AI', value: 'ai' },
           ]}
           onChange={(value) => {
-            setType(value as "clipboard" | "ai");
+            setType(value as 'clipboard' | 'ai')
           }}
         />
       </View>
@@ -181,11 +195,23 @@ const ClipboardList = () => {
           <View className={styles.chatInputWrapper}>
             <ChatInput aiResponseCallback={setAiResponse} />
           </View>
+          {/* 历史记录 */}
+          <Drawer
+            title="历史记录"
+            placement="left"
+            closable={false}
+            onClose={onClose}
+            open={open}
+          >
+            <View>
+              
+            </View>
+          </Drawer>
         </View>
       )}
 
       {/* 剪切板列表 */}
-      {type === "clipboard" && (
+      {type === 'clipboard' && (
         <View className={styles.clipboardList}>
           <List
             itemLayout="horizontal"
@@ -217,7 +243,7 @@ const ClipboardList = () => {
         </View>
       )}
     </View>
-  );
-};
+  )
+}
 
-export default ClipboardList;
+export default ClipboardList

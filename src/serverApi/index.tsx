@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost";
+const BASE_URL = "http://10.81.50.101";
 
 const BASE_PORT = 11434;
 
@@ -29,7 +29,7 @@ export async function fetchAndDisplayStream({
       body: JSON.stringify({
         messages: [{
           role: "user",
-          content: '你是一个剪切板小助手，由瞰觅的前端同学开发。下面问题使用简体中文回答。',
+          content: '你是一个使用瞰觅科技公司广州办公室本地服务器中的ollama跑起来的聊天机器人，默认模型使用llama3.1。下面问题使用简体中文回答。',
         },{
           role: "user",
           content: question,
@@ -62,7 +62,7 @@ export async function fetchAndDisplayStream({
       });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
 
@@ -71,15 +71,25 @@ export async function fetchAndDisplayStream({
  * 测试ollama连接
  */
 export const testOllamaConnection = async () => {
+  try {
   const response = await fetch(`${BASE_URL}:${BASE_PORT}`);
   return response.ok;
+  } catch (error) {
+    console.error("testOllamaConnection error:", error);
+    return false
+  }
 };
 
 /**
  * 获取模型列表
  */
 export const getModelList = async () => {
-  const response = await fetch(`${BASE_URL}:${BASE_PORT}/api/tags`);
-  const {models: moduleList}: {models: { name: string; digest: string }[]} = await response.json();
-  return moduleList;
+  try {
+    const response = await fetch(`${BASE_URL}:${BASE_PORT}/api/tags`);
+    const {models: moduleList}: {models: { name: string; digest: string }[]} = await response.json();
+    return moduleList;
+  } catch (error) {
+    console.error("getModelList error:", error);
+  }
+  
 };
