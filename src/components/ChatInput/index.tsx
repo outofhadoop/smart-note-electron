@@ -81,6 +81,7 @@ const ChatInput = (props: {
       <View className={styles.textAreaWrapper}>
         <TextArea
           allowClear
+          value={appendContent}
           autoSize={{ minRows: 1, maxRows: 10 }}
           className={styles.textArea}
           rows={1}

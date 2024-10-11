@@ -75,6 +75,7 @@ const useOllama = (
         setAiResponse(res.content);
         if (res.done) {
           setRequireIng(false);
+          setAppendContent("");
           finishAnswer?.(res);
         }
       },

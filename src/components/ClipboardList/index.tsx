@@ -12,10 +12,12 @@ import {
   Popover,
   Divider,
   Drawer,
+  Avatar,
+  Menu,
 } from "antd";
-import { HistoryOutlined } from "@ant-design/icons";
+import { HistoryOutlined, UserOutlined } from "@ant-design/icons";
 // import hljs from "highlight.js";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import View from "../View";
 import {
   CommentOutlined,
@@ -64,6 +66,7 @@ const ClipboardList = () => {
     title: "",
     id: uuidv4(),
   });
+  const currentHistoryRef = useRef(currentHistory);
   const [askSomething, setAskSomething] = useState<{
     prompt: string;
     images: { noBase64Prefix: string; allContent: string }[];
@@ -76,6 +79,10 @@ const ClipboardList = () => {
   const handleClipboardChangeData = (newContent: ClipboardItem[]) => {
     setData(newContent);
   };
+
+  useEffect(() => {
+    currentHistoryRef.current = currentHistory;
+  }, [currentHistory]);
 
   useEffect(() => {
     /**
@@ -182,13 +189,17 @@ const ClipboardList = () => {
   };
 
   const handleSubmit = (appendContent: string) => {
-    
     // 是否已经存在
     const history = ollamaHistoryManager.getHistory();
-    const index = history.findIndex((item) => item.id === currentHistory?.id);
+    const index = history.findIndex(
+      (item) => item.id === currentHistoryRef.current.id
+    );
     if (index !== -1) {
-      history[index].messages.push({ role: "user", content: appendContent });
-      console.log("history[index]", history[index], index, history);
+      history[index].messages.push({
+        role: "user",
+        content: appendContent,
+        id: uuidv4(),
+      });
       setCurrentHistory(history[index]);
       if (index !== 0) {
         // 把这条记录移动到最前面
@@ -201,26 +212,39 @@ const ClipboardList = () => {
     }
     // 不存在添加到历史记录
     const oneHistory = {
-      ...currentHistory,
-      messages: [...currentHistory.messages, { role: "user", content: appendContent }],
+      ...currentHistoryRef.current,
+      messages: [
+        ...currentHistoryRef.current.messages,
+        { role: "user", content: appendContent, id: uuidv4() },
+      ],
       timestamp: Date.now(),
-      title: appendContent.slice(0, 10),
-    }
+      title:
+        appendContent.length > 10
+          ? appendContent.slice(0, 10) + "..."
+          : appendContent,
+    };
     ollamaHistoryManager.addHistory(oneHistory);
-    console.log("oneHistory111111", oneHistory);
     setCurrentHistory(oneHistory);
     setChatHistory(ollamaHistoryManager.getHistory());
   };
 
-  const handleFinishAnswer = (res: { content: string; done?: boolean, singleContent: string }) => {
-    const oneHistory = {  
-      ...currentHistory,
-      messages: [...currentHistory.messages, { role: "assistant", content: res.content }],
-    }
-    console.log("oneHistory", oneHistory);
+  const handleFinishAnswer = (res: {
+    content: string;
+    done?: boolean;
+    singleContent: string;
+  }) => {
+    const oneHistory = {
+      ...currentHistoryRef.current,
+      messages: [
+        ...currentHistoryRef.current.messages,
+        { role: "assistant", content: res.content, id: uuidv4() },
+      ],
+    };
     ollamaHistoryManager.updateHistory(oneHistory.id, oneHistory.messages);
     setCurrentHistory(oneHistory);
-  }
+    setAiResponse("");
+
+  };
 
   return (
     <View className={styles.container}>
@@ -244,11 +268,42 @@ const ClipboardList = () => {
       </View>
       {type === "ai" && (
         <View className={styles.aiResponse}>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: marked.parse(aiResponse),
-            }}
-          />
+          {currentHistory.messages.map((item) => (
+            <React.Fragment key={item.id}>
+              {/* 用户提问 */}
+              {item.role === "user" && (
+                <div className={styles.userMessage}>
+                  <div>{item.content}</div>
+                  <Avatar className={styles.avatar} icon={<UserOutlined />} />
+                </div>
+              )}
+              {/* 回答 */}
+              {item.role === "assistant" && (
+                <div className={styles.assistantMessageWrapper}>
+                  <Avatar className={styles.avatar} icon={<UserOutlined />} />
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: marked.parse(item.content),
+                    }}
+                  />
+                </div>
+              )}
+            </React.Fragment>
+          ))}
+
+          {/* 回答 */}
+           <div className={styles.assistantMessageWrapper}>
+            {aiResponse && (
+              <Avatar className={styles.avatar} icon={<UserOutlined />} />
+            )}
+            <div
+              className={styles.assistantMessage}
+              dangerouslySetInnerHTML={{
+                __html: marked.parse(aiResponse),
+              }}
+            />
+          </div>
+
           <View className={styles.chatInputWrapper}>
             <ChatInput
               messages={currentHistory?.messages}
@@ -265,7 +320,19 @@ const ClipboardList = () => {
             onClose={onClose}
             open={open}
           >
-            <View></View>
+            <View>
+              <Menu
+                onClick={(e) => {
+                  setCurrentHistory(chatHistory.find((item) => item.id === e.key)!);
+                  onClose();
+                }}
+                mode="inline"
+                items={chatHistory.map((item) => ({
+                  label: item.title,
+                  key: item.id,
+                }))}
+              />
+            </View>
           </Drawer>
         </View>
       )}

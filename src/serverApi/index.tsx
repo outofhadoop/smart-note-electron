@@ -30,11 +30,11 @@ export async function fetchAndDisplayStream({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         messages: [
-          {
-            role: "user",
-            content:
-              "你是一个使用瞰觅科技公司广州办公室本地服务器中的ollama跑起来的聊天机器人，默认模型使用llama3.1。下面问题使用简体中文回答。",
-          },
+          // {
+          //   role: "user",
+          //   content:
+          //     "你是一个使用瞰觅科技公司广州办公室本地服务器中的ollama跑起来的聊天机器人，默认模型使用llama3.1。下面问题使用简体中文回答。",
+          // },
           ...(messages || []),
         ],
         model: "llama3.1",

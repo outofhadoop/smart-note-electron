@@ -48,7 +48,7 @@ interface HistoryItem {
   answer?: string;
   timestamp: number;
   title: string;
-  messages: Array<{ role: string; content: string }>;
+  messages: Array<{ role: string; content: string, id: string }>;
   id: string;
   question?: string;
   //   暂时没用
